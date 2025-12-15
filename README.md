@@ -16,8 +16,8 @@ This framework unifies database access (SQL & NoSQL) via a robust implementation
 - [Configuration Guide](#-configuration-guide)
 - [Usage](#-usage)
 - [Running the Demos (Paris Metro)](#-running-the-demos)
-- [Tests](#-tests)
 - [Project Structure](#-project-structure)
+- [Tests](#-tests)
 
 ---
 
@@ -27,7 +27,7 @@ This project ports solid concepts from the Java ecosystem to Python:
 
 1.  **Domain Entities (`@Entity`)**: Uses **Pydantic** to define strongly typed data models with runtime validation.
 2.  **Entity Manager (`EntityManager`)**: An agnostic interface managing the object lifecycle (persist, find, remove) and the underlying driver connection.
-3.  **Repositories (`Repository`)**: A business abstraction layer hiding query complexity (Gremlin, SQL) behind simple methods (`save`, `find_by_id`, `find_shortest_path`).
+3.  **Repositories (`Repository`)**: A business abstraction layer hiding query complexity (Gremlin, SQL) behind simple methods (`save`, `find_by_id`, `find_fastest_path`).
 
 ### Simplified Class Diagram
 
@@ -40,6 +40,7 @@ classDiagram
     }
     class Station {
         +str name
+        +int zone
     }
     BaseEntity <|-- Station
     
@@ -47,265 +48,177 @@ classDiagram
         <<Interface>>
         +persist(entity)
         +find_by_property(key, value)
+        +create_relationship(from, to, rel)
     }
     class GremlinEntityManager {
         +DriverRemoteConnection connection
     }
     EntityManager <|-- GremlinEntityManager
     
-    class StationRepository {
-        +save(station)
-        +find_shortest_path(start, end)
+    class MetroRepository {
+        +save_station(station)
+        +find_fastest_path(start, end)
     }
-    StationRepository --> EntityManager : uses
+    MetroRepository --> EntityManager : uses
+
 ```
 
 ---
 
-## 🚀 Installation
+##🚀 InstallationThis project uses **[uv](https://github.com/astral-sh/uv)** for lightning-fast dependency management.
 
-This project uses **[uv](https://github.com/astral-sh/uv)** for lightning-fast dependency management.
+1. **Clone the repository:**
+```bash
+git clone [https://github.com/your-user/soltania-python-persistence-api.git](https://github.com/your-user/soltania-python-persistence-api.git)
+cd soltania-python-persistence-api
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/your-user/soltania-python-persistence-api.git](https://github.com/your-user/soltania-python-persistence-api.git)
-    cd soltania-python-persistence-api
-    ```
+```
 
-2.  **Install dependencies and environment:**
-    ```bash
-    uv sync
-    ```
-    *This command automatically creates the `.venv` folder and installs everything needed.*
+
+2. **Install dependencies and environment:**
+```bash
+uv sync
+
+```
+
+
+*This command automatically creates the `.venv` folder and installs everything needed.*
 
 ---
 
-## ⚙️ Configuration Guide
+##⚙️ Configuration GuideThis project uses a hierarchical configuration system inspired by Spring Boot. Variables are defined in `src/soltania_persistence/config.py`.
 
-This project uses a hierarchical configuration system inspired by Spring Boot. You do not need to modify the code to switch environments (Dev, Test, Prod).
-
-Variables are defined and centralized in `src/soltania_persistence/config.py`.
-
-### 📋 Available Variables
-
-| Variable | Description | Default Value |
-| :--- | :--- | :--- |
+###📋 Available Variables| Variable | Description | Default Value |
+| --- | --- | --- |
 | `GREMLIN_HOST` | IP Address of the Tinkerpop/Gremlin server | `localhost` |
 | `GREMLIN_PORT` | Server Port | `8182` |
 | `GREMLIN_PROTOCOL` | `ws` (WebSocket) or `wss` (Secure) | `ws` |
-| `SOLTANIA_CONFIG_PATH` | Path to an external config file | *None* |
 
-### 🚀 Source Priority (Hierarchy)
+###🚀 Source Priority1. **CLI Arguments** (e.g. `--gremlin_host=10.0.0.1`)
+2. **Environment Variables** (`export GREMLIN_HOST=...`)
+3. **Internal `.env` File** (Project root)
+4. **Default Values** (Code)
 
-The active value is determined by this priority order (from highest to lowest):
+---
 
-1.  **Command Line Arguments** (CLI)
-2.  **Environment Variables** (OS)
-3.  **External Configuration File** (via `SOLTANIA_CONFIG_PATH`)
-4.  **Internal `.env` File** (Project root)
-5.  **Default Values** (Code)
+##🚇 Running the Demos (Paris Metro)The project includes a complete example modeling the **Paris Metro Network** located in `src/soltania_persistence/examples/metro_network`.
 
-### 🛠️ Configuration Methods (Examples)
-
-**1. Via CLI Arguments (Highest Priority)**
-Ideal for overriding a value temporarily during a test.
-Use the `--variable_name=value` format.
+###1. Initialize the DatabaseYou must first clean and populate the database with the provided line data (JSON).
 
 ```bash
-uv run src/soltania_persistence/app/run_path.py --gremlin_host=192.168.1.50
+# Clear database (Drop)
+uv run src/soltania_persistence/examples/metro_network/main.py drop
+
+# Import data (Load)
+uv run src/soltania_persistence/examples/metro_network/main.py load
+
 ```
 
-**2. Via Environment Variables**
-Ideal for CI/CD (Docker, Kubernetes).
+###2. Calculate an ItineraryRun the pathfinding algorithm between any two stations.
+
+**Example 1: A simple trip**
 
 ```bash
-# Linux / Mac
-export GREMLIN_HOST=10.0.0.1
-uv run src/soltania_persistence/app/main.py
+uv run src/soltania_persistence/examples/metro_network/main.py "Mairie des Lilas" "Châtelet"
 
-# Windows (PowerShell)
-$env:GREMLIN_HOST="10.0.0.1"
-uv run src/soltania_persistence/app/main.py
 ```
 
-**3. Via Local `.env` File (Dev)**
-Create a `.env` file at the root:
-```properties
-GREMLIN_HOST=192.168.6.40
-GREMLIN_PORT=8182
+**Example 2: A complex trip (with transfer)**
+
+```bash
+uv run src/soltania_persistence/examples/metro_network/main.py "Mairie des Lilas" "Chelles - Gournay"
+
+```
+
+###📸 Real-world OutputHere is an actual execution trace. Notice how the engine intelligently detects transfers:
+
+```text
+🚀 FASTEST ROUTE (43 min 30 sec)
+==================================================
+📍 START : Mairie des Lilas
+
+   ⬇️  TAKE 🚇 METRO 11
+      ▪️ Porte des Lilas
+      ▪️ Télégraphe
+      ▪️ Place des Fêtes
+      ▪️ Jourdain
+      ▪️ Pyrénées
+      ▪️ Belleville
+      ▪️ Goncourt
+      ▪️ République
+      ▪️ Arts et Métiers
+      ▪️ Rambuteau
+      ▪️ Hôtel de Ville
+      ▪️ Châtelet
+
+   🔄 TRANSFER : Take 🚄 RER A
+      ▪️ Gare de Lyon
+      ▪️ Nation
+      ▪️ Vincennes
+      ▪️ Val de Fontenay
+      ▪️ Neuilly-Plaisance
+      ▪️ Bry-sur-Marne
+      ▪️ Noisy-le-Grand - Mont d'Est
+      ▪️ Noisy - Champs
+
+   🔄 TRANSFER : Take 🚇 METRO 16
+      ▪️ Chelles - Gournay
+==================================================
+🏁 ARRIVAL : Chelles - Gournay
+
 ```
 
 ---
 
-## 💻 Usage
+##📂 Project StructureThe project follows a modular "Domain-Driven" structure.
 
-### 1. Define an Entity
-Inherit from `BaseEntity`. Pydantic handles validation.
+```text
+soltania-python-persistence-api/
+├── pyproject.toml               # Dependencies
+├── .env                         # Local config
+├── src/
+│   └── soltania_persistence/
+│       ├── config.py            # ⚙️ Configuration Engine
+│       ├── core/                # 🧱 Framework Core (Entities, Interfaces)
+│       ├── provider/            # 🔌 Drivers (Tinkerpop/Gremlin)
+│       └── examples/
+│           └── metro_network/   # 🚇 Domain Example: Transport
+│               ├── data/        # JSON Data (lines.json)
+│               ├── models/      # Nodes (Station) & Edges (Connection)
+│               ├── repositories/# Gremlin Logic (Pathfinding)
+│               ├── services/    # ETL/Importer Logic
+│               └── main.py      # Entry Point (CLI)
+└── tests/                       # 🧪 Unit & Integration Tests
 
-```python
-from typing import ClassVar
-from soltania_persistence.core.domain import BaseEntity
-
-class User(BaseEntity):
-    # Mapping to Vertex Label (Graph) or Table (SQL)
-    __label__: ClassVar[str] = "user" 
-    
-    username: str
-    email: str
 ```
 
-### 2. Use a Repository
-Never manipulate the database directly. Use the repository.
+---
+
+##💻 Usage (Code Snippet)Here is how you would use the framework in your own code:
 
 ```python
 from soltania_persistence.provider.tinkerpop.manager import GremlinEntityManager
 from soltania_persistence.config import settings
+from my_app.repositories import UserRepository
 
-# Initialization
+# 1. Initialize Manager
 em = GremlinEntityManager(settings.gremlin_url)
 repo = UserRepository(em)
 
-# Save (Create or Update)
+# 2. Persist Data
 user = User(username="admin", email="admin@corp.com")
-saved_user = repo.save(user)
+repo.save(user)
 
-print(f"User saved with ID: {saved_user.id}")
+# 3. Query Data
+found_user = repo.find_by_username("admin")
+
 ```
 
 ---
 
-## 🚇 Running the Demos
-
-The project includes a demo application modeling the **Paris Metro** (Lines 1 and 9).
-
-### 1. Populate the Database (Migration)
-This script creates the stations (Vertices) and connections (Edges) in your Gremlin server.
-
-```bash
-uv run src/soltania_persistence/app/main.py
-```
-
-### 2. Calculate an Itinerary
-This script uses the shortest path algorithm via the Repository.
-
-**Default Usage (La Défense -> Château de Vincennes):**
-```bash
-uv run src/soltania_persistence/app/run_path.py
-```
-
-**Custom Usage:**
-```bash
-uv run src/soltania_persistence/app/run_path.py "Bastille" "République"
-```
-*Output Example:*
-```text
-✅ ITINERARY FOUND:
-📍 START: Bastille
-    ⬇️  (Take Line 1)
-🚉 Gare de Lyon
-    ⬇️  (Take Line 14)
-🏁 ARRIVAL: Bercy
-```
-
----
-
-## 🧪 Tests
-
-Tests are managed by `pytest` and divided into two categories.
-
-### Unit Tests
-Test the logic of models and repositories using **Mocks** (no DB connection required).
-```bash
+##🧪 Tests```bash
+# Run unit tests
 uv run pytest -m "not integration"
-```
 
-### Integration Tests
-Actually connect to the configured Gremlin server to validate read/write operations.
-```bash
-uv run pytest tests/integration
-```
-
-### Run All (with coverage)
-```bash
+# Run all tests (requires running Gremlin server)
 uv run pytest
-```
-
----
-
-## 📂 Project Structure
-
-```text
-soltania-python-persistence-api/
-├── pyproject.toml           # Dependency management (Maven/Gradle equivalent)
-├── uv.lock                  # Exact version locking
-├── .env                     # Local environment variables (Ignored by Git)
-├── src/
-│   └── soltania_persistence/
-│       ├── config.py        # ⚙️ Hierarchical configuration engine
-│       ├── core/            # 🧱 The Framework (Interfaces, Domain)
-│       │   ├── domain.py    # BaseEntity, Relationship
-│       │   └── interfaces.py # EntityManager, Repository (Abstract)
-│       ├── provider/        # 🔌 Implementations (Drivers)
-│       │   └── tinkerpop/   # Gremlin Driver (Graph DB)
-│       └── app/             # 🚇 Demo Application (Metro)
-│           ├── models.py    # Station, Connection
-│           ├── repositories.py # StationRepository
-│           ├── main.py      # Population script
-│           └── run_path.py  # Pathfinding script
-└── tests/                   # 🧪 Unit and Integration Tests
-```
-
----
-
-## 📸 Real-world Example
-
-Here is an actual execution trace when requesting a path between **Esplanade de la Défense** and **République**.
-
-Notice how the algorithm correctly identifies the optimal transfer from **Line 1** to **Line 9** at *Franklin D. Roosevelt*.
-
-```console
-$ uv run src/soltania_persistence/app/run_path.py "Esplanade de la Défense" "République"
-
-Configuration loaded: ws://192.168.6.40:8182/gremlin
-Request: Path from 'Esplanade de la Défense' to 'République'
-  [Repo] Searching path with lines: Esplanade de la Défense -> République
-
-✅ ITINERARY FOUND (17 stops):
-========================================
-📍 START: Esplanade de la Défense
-    ⬇️  (Take Line 1)
-🚉 Pont de Neuilly
-    ⬇️  (Take Line 1)
-🚉 Les Sablons
-    ⬇️  (Take Line 1)
-🚉 Porte Maillot
-    ⬇️  (Take Line 1)
-🚉 Argentine
-    ⬇️  (Take Line 1)
-🚉 Charles de Gaulle - Étoile
-    ⬇️  (Take Line 1)
-🚉 George V
-    ⬇️  (Take Line 1)
-🚉 Franklin D. Roosevelt
-    ⬇️  (Take Line 9)
-🚉 Saint-Philippe du Roule
-    ⬇️  (Take Line 9)
-🚉 Miromesnil
-    ⬇️  (Take Line 9)
-🚉 Saint-Augustin
-    ⬇️  (Take Line 9)
-🚉 Havre - Caumartin
-    ⬇️  (Take Line 9)
-🚉 Chaussée d'Antin - La Fayette
-    ⬇️  (Take Line 9)
-🚉 Richelieu - Drouot
-    ⬇️  (Take Line 9)
-🚉 Grands Boulevards
-    ⬇️  (Take Line 9)
-🚉 Bonne Nouvelle
-    ⬇️  (Take Line 9)
-🚉 Strasbourg - Saint-Denis
-    ⬇️  (Take Line 9)
-🚉 République
-========================================
-🏁 ARRIVAL

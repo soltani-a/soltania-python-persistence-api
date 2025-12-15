@@ -4,23 +4,16 @@
     "avg_stop_time": 90,
     "lines": {
       "1": ["La Défense", "Esplanade de la Défense", "Pont de Neuilly", "Les Sablons", "Porte Maillot", "Argentine", "Charles de Gaulle - Étoile", "George V", "Franklin D. Roosevelt", "Champs-Élysées - Clemenceau", "Concorde", "Tuileries", "Palais Royal - Musée du Louvre", "Louvre - Rivoli", "Châtelet", "Hôtel de Ville", "Saint-Paul", "Bastille", "Gare de Lyon", "Reuilly - Diderot", "Nation", "Porte de Vincennes", "Saint-Mandé", "Bérault", "Château de Vincennes"],
-      "2": ["Porte Dauphine", "Victor Hugo", "Charles de Gaulle - Étoile", "Ternes", "Courcelles", "Monceau", "Villiers", "Rome", "Place de Clichy", "Blanche", "Pigalle", "Anvers", "Barbès - Rochechouart", "La Chapelle", "Stalingrad", "Jaurès", "Colonel Fabien", "Belleville", "Couronnes", "Ménilmontant", "Père Lachaise", "Philippe Auguste", "Alexandre Dumas", "Avron", "Nation"],
-      "4": ["Porte de Clignancourt", "Simplon", "Marcadet - Poissonniers", "Château Rouge", "Barbès - Rochechouart", "Gare du Nord", "Gare de l'Est", "Château d'Eau", "Strasbourg - Saint-Denis", "Réaumur - Sébastopol", "Étienne Marcel", "Les Halles", "Châtelet", "Cité", "Saint-Michel", "Odéon", "Saint-Germain-des-Prés", "Saint-Sulpice", "Saint-Placide", "Montparnasse - Bienvenüe", "Vavin", "Raspail", "Denfert-Rochereau", "Mouton-Duvernet", "Alésia", "Porte d'Orléans", "Mairie de Montrouge", "Barbara", "Bagneux - Lucie Aubrac"]
+      "11": ["Châtelet", "Hôtel de Ville", "Rambuteau", "Arts et Métiers", "République", "Goncourt", "Belleville", "Pyrénées", "Jourdain", "Place des Fêtes", "Télégraphe", "Porte des Lilas", "Mairie des Lilas", "Serge Gainsbourg", "Romainville - Carnot", "Montreuil - Hôpital", "La Dhuys", "Coteaux Beauclair", "Rosny-Bois-Perrier"],
+      "15": ["Noisy - Champs", "Bry - Villiers - Champigny", "Champigny Centre", "Saint-Maur - Créteil", "Créteil - L'Échat", "Le Vert de Maisons", "Les Ardoines", "Vitry Centre", "Villejuif - Louis Aragon", "Villejuif - Gustave Roussy", "Arcueil - Cachan", "Bagneux", "Châtillon - Montrouge", "Fort d'Issy - Vanves - Clamart", "Issy", "Pont de Sèvres"],
+      "16": ["Saint-Denis Pleyel", "La Courneuve - Six Routes", "Le Bourget RER", "Le Blanc-Mesnil", "Aulnay-sous-Bois", "Sevran - Beaudottes", "Sevran - Livry", "Clichy - Montfermeil", "Chelles - Gournay", "Noisy - Champs"]
     }
   },
   "RER": {
     "speed_factor": 0.5,
     "avg_stop_time": 180,
     "lines": {
-      "A": ["La Défense", "Charles de Gaulle - Étoile", "Auber", "Châtelet", "Gare de Lyon", "Nation", "Vincennes"],
-      "B": ["Gare du Nord", "Châtelet", "Saint-Michel - Notre-Dame", "Luxembourg", "Port-Royal", "Denfert-Rochereau", "Cité Universitaire"]
-    }
-  },
-  "TRAM": {
-    "speed_factor": 1.5,
-    "avg_stop_time": 120,
-    "lines": {
-      "T3a": ["Pont du Garigliano", "Balard", "Desnouettes", "Porte de Versailles", "Georges Brassens", "Brancion", "Porte de Vanves", "Didot", "Jean Moulin", "Porte d'Orléans"]
+      "A": ["La Défense", "Charles de Gaulle - Étoile", "Auber", "Châtelet", "Gare de Lyon", "Nation", "Vincennes", "Val de Fontenay", "Neuilly-Plaisance", "Bry-sur-Marne", "Noisy-le-Grand - Mont d'Est", "Noisy - Champs", "Lognes", "Torcy"]
     }
   }
 }
