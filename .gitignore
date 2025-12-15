@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE & Tooling
+.idea/
+.vscode/
+*.swp
+.DS_Store
+.spyderproject
+.spyproject
+
+# Type Checking & Linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Git (Explicitly ignore the git folder, though git usually handles this)
+.git/
+
+# Terraform (Safety net)
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Logs and Debugging
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Local configuration overrides (if any)
+local_settings.py

@@ -1,0 +1,63 @@
+[build-system]
+# Use hatchling as the build backend (standard and modern)
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "soltania-python-persistence-api"
+version = "0.1.0"
+description = "A JPA-inspired abstraction layer for Python (SQL/NoSQL)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Slim Soltani", email = "ssoltanid@example.com" }
+]
+# Main dependencies
+dependencies = [
+    "gremlinpython>=3.8.0",
+    "pydantic>=2.5",
+    "pydantic-settings>=2.12.0",
+    "sqlalchemy>=2.0",
+]
+
+# Configuration for package discovery (replaces packages = [{include...}])
+# Hatchling detects 'src' layout automatically by default
+[tool.hatch.build.targets.wheel]
+packages = ["src/soltania_persistence"]
+
+# --- DEV DEPENDENCIES (Standardized for uv) ---
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.1.9",
+    "mypy>=1.8",
+    "pre-commit>=3.6",
+]
+
+# --- RUFF CONFIGURATION (Remains the same) ---
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"] # pycodestyle, pyflakes, isort, bugbear, pyupgrade
+ignore = ["E501"]
+
+# --- MYPY CONFIGURATION (Remains the same) ---
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+# Forces typing on all functions (Architecture requirement)
+disallow_untyped_defs = true 
+
+# --- PYTEST CONFIGURATION (Remains the same) ---
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "--cov=soltania_persistence --cov-report=term-missing"
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests as requiring a real database connection",
+    "unit: marks fast unit tests"
+]
