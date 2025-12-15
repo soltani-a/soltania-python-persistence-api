@@ -254,3 +254,58 @@ soltania-python-persistence-api/
 │           └── run_path.py  # Pathfinding script
 └── tests/                   # 🧪 Unit and Integration Tests
 ```
+
+---
+
+## 📸 Real-world Example
+
+Here is an actual execution trace when requesting a path between **Esplanade de la Défense** and **République**.
+
+Notice how the algorithm correctly identifies the optimal transfer from **Line 1** to **Line 9** at *Franklin D. Roosevelt*.
+
+```console
+$ uv run src/soltania_persistence/app/run_path.py "Esplanade de la Défense" "République"
+
+Configuration loaded: ws://192.168.6.40:8182/gremlin
+Request: Path from 'Esplanade de la Défense' to 'République'
+  [Repo] Searching path with lines: Esplanade de la Défense -> République
+
+✅ ITINERARY FOUND (17 stops):
+========================================
+📍 START: Esplanade de la Défense
+    ⬇️  (Take Line 1)
+🚉 Pont de Neuilly
+    ⬇️  (Take Line 1)
+🚉 Les Sablons
+    ⬇️  (Take Line 1)
+🚉 Porte Maillot
+    ⬇️  (Take Line 1)
+🚉 Argentine
+    ⬇️  (Take Line 1)
+🚉 Charles de Gaulle - Étoile
+    ⬇️  (Take Line 1)
+🚉 George V
+    ⬇️  (Take Line 1)
+🚉 Franklin D. Roosevelt
+    ⬇️  (Take Line 9)
+🚉 Saint-Philippe du Roule
+    ⬇️  (Take Line 9)
+🚉 Miromesnil
+    ⬇️  (Take Line 9)
+🚉 Saint-Augustin
+    ⬇️  (Take Line 9)
+🚉 Havre - Caumartin
+    ⬇️  (Take Line 9)
+🚉 Chaussée d'Antin - La Fayette
+    ⬇️  (Take Line 9)
+🚉 Richelieu - Drouot
+    ⬇️  (Take Line 9)
+🚉 Grands Boulevards
+    ⬇️  (Take Line 9)
+🚉 Bonne Nouvelle
+    ⬇️  (Take Line 9)
+🚉 Strasbourg - Saint-Denis
+    ⬇️  (Take Line 9)
+🚉 République
+========================================
+🏁 ARRIVAL
