@@ -1,0 +1,60 @@
+{
+  "units": [
+    {
+      "id": "linux_basics",
+      "title": "Linux Fundamentals",
+      "category": "OS",
+      "hours": 10,
+      "prerequisites": []
+    },
+    {
+      "id": "python_basics",
+      "title": "Python for Beginners",
+      "category": "Programming",
+      "hours": 20,
+      "prerequisites": []
+    },
+    {
+      "id": "python_scripting",
+      "title": "Python Scripting for DevOps",
+      "category": "Programming",
+      "hours": 15,
+      "prerequisites": ["python_basics", "linux_basics"]
+    },
+    {
+      "id": "docker_101",
+      "title": "Docker Essentials",
+      "category": "Containerization",
+      "hours": 8,
+      "prerequisites": ["linux_basics"]
+    },
+    {
+      "id": "k8s_admin",
+      "title": "Kubernetes Administrator (CKA)",
+      "category": "Containerization",
+      "hours": 25,
+      "prerequisites": ["docker_101", "python_scripting"]
+    },
+    {
+      "id": "aws_practitioner",
+      "title": "AWS Cloud Practitioner",
+      "category": "Cloud",
+      "hours": 12,
+      "prerequisites": []
+    },
+    {
+      "id": "aws_architect",
+      "title": "AWS Solutions Architect Associate",
+      "category": "Cloud",
+      "hours": 40,
+      "prerequisites": ["aws_practitioner", "linux_basics"]
+    },
+    {
+      "id": "devops_pro",
+      "title": "DevOps Engineer Professional",
+      "category": "Career",
+      "hours": 60,
+      "prerequisites": ["k8s_admin", "aws_architect"]
+    }
+  ]
+}

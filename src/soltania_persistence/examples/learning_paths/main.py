@@ -1,83 +1,97 @@
 import sys
 import os
+import asyncio
 
-# Ensure the package is in path if running as script
+# --- WINDOWS FIX ---
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# -------------------
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
-src_path = os.path.abspath(os.path.join(current_dir, "../../.."))
+src_path = os.path.abspath(os.path.join(current_dir, "../../../"))
 if src_path not in sys.path:
     sys.path.append(src_path)
 
-from soltania_persistence.provider.tinkerpop.manager import GremlinEntityManager
-from soltania_persistence.app.models import Station, Connection
-from soltania_persistence.app.repositories import StationRepository
-
-# Import the centralized configuration
 from soltania_persistence.config import settings
+from soltania_persistence.provider.tinkerpop.manager import GremlinEntityManager
+from soltania_persistence.examples.learning_paths.repositories.curriculum_repository import CurriculumRepository
+from soltania_persistence.examples.learning_paths.services.importer import CurriculumImporter
 
-def populate_metro():
-    print(f"Connecting to GraphDB at: {settings.gremlin_url}")
-    
-    # Initialize EntityManager with config from settings
+def get_prop(element_map, key):
+    """Helper for elementMap extraction."""
+    if not isinstance(element_map, dict): return str(element_map)
+    if key in element_map: return element_map[key]
+    for k, v in element_map.items():
+        if str(k) == key: return v
+    return "???"
+
+def main():
     em = GremlinEntityManager(settings.gremlin_url)
-    station_repo = StationRepository(em)
+    repo = CurriculumRepository(em)
+    
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
 
-    # Metro Data Definition
-    lines = {
-        "1": [
-            "La Défense", "Esplanade de la Défense", "Pont de Neuilly", "Les Sablons",
-            "Porte Maillot", "Argentine", "Charles de Gaulle - Étoile", "George V",
-            "Franklin D. Roosevelt", "Champs-Élysées - Clemenceau", "Concorde",
-            "Tuileries", "Palais Royal - Musée du Louvre", "Louvre - Rivoli",
-            "Châtelet", "Hôtel de Ville", "Saint-Paul", "Bastille", "Gare de Lyon",
-            "Reuilly - Diderot", "Nation", "Porte de Vincennes", "Saint-Mandé",
-            "Bérault", "Château de Vincennes"
-        ],
-        "9": [
-            "Pont de Sèvres", "Billancourt", "Marcel Sembat", "Porte de Saint-Cloud",
-            "Exelmans", "Michel-Ange - Molitor", "Michel-Ange - Auteuil", "Jasmin",
-            "Ranelagh", "La Muette", "Rue de la Pompe", "Trocadéro", "Iéna",
-            "Alma - Marceau", "Franklin D. Roosevelt", "Saint-Philippe du Roule",
-            "Miromesnil", "Saint-Augustin", "Havre - Caumartin",
-            "Chaussée d'Antin - La Fayette", "Richelieu - Drouot", "Grands Boulevards",
-            "Bonne Nouvelle", "Strasbourg - Saint-Denis", "République", "Oberkampf",
-            "Saint-Ambroise", "Voltaire", "Charonne", "Rue des Boulets", "Nation",
-            "Buzenval", "Maraîchers", "Porte de Montreuil", "Robespierre",
-            "Croix de Chavaux", "Mairie de Montreuil"
-        ]
-    }
-
-    try:
-        # Optional: Clear DB for clean state (Be careful in prod!)
-        # em.clear_database()
-
-        for line_name, stations in lines.items():
-            print(f"\n--- Processing Line {line_name} ---")
-            previous_station = None
-
-            for station_name in stations:
-                # 1. Instantiate (Transient state)
-                new_station = Station(name=station_name)
-                
-                # 2. Save (Managed state) via Repository
-                current_station = station_repo.save(new_station)
-
-                # 3. Link (Edges)
-                if previous_station:
-                    conn = Connection(line=line_name)
-                    # Create bi-directional link
-                    em.create_relationship(previous_station, current_station, conn)
-                    em.create_relationship(current_station, previous_station, conn)
-
-                previous_station = current_station
-        
-        print("\n✅ Migration completed successfully!")
-
-    except Exception as e:
-        print(f"❌ Critical Error: {e}")
-        import traceback
-        traceback.print_exc()
-    finally:
+    if cmd == "drop":
+        print("💥 Clearing database...")
+        em.g.V().drop().iterate()
         em.close()
+        return
+
+    if cmd == "load":
+        json_path = os.path.join(current_dir, "data", "curriculum.json")
+        importer = CurriculumImporter(repo, json_path)
+        importer.run()
+        em.close()
+        return
+
+    if cmd == "roadmap":
+        target_slug = sys.argv[2] if len(sys.argv) > 2 else "devops_pro"
+        raw_paths = repo.get_roadmap(target_slug)
+        
+        print(f"\n🗺️  ROADMAP TO: {target_slug}")
+        print("="*40)
+        
+        # Le résultat est une liste de chemins. Pour une roadmap linéaire simple,
+        # on peut extraire tous les nœuds uniques rencontrés.
+        
+        seen = set()
+        steps = []
+        
+        # Gremlin renvoie des chemins depuis la racine vers la feuille ou l'inverse selon le sens.
+        # Ici on a traversé "in" (en arrière).
+        
+        for path_obj in raw_paths:
+            # path_obj est une liste d'objets [Unit, Edge, Unit...]
+            # On parcourt à l'envers pour avoir l'ordre chronologique (Base -> Avancé)
+            nodes = [x for x in path_obj if isinstance(x, dict) and 'slug' not in str(x)] # Filtrer edges approximativement
+            
+            # Meilleure méthode : itérer sur les objets du path
+            for item in reversed(path_obj):
+                if isinstance(item, dict):
+                    # C'est un noeud (elementMap)
+                    slug = get_prop(item, 'slug')
+                    title = get_prop(item, 'title')
+                    if slug and slug not in seen and slug != "???":
+                        seen.add(slug)
+                        steps.append(title)
+
+        # Affichage
+        if steps:
+            for i, title in enumerate(steps, 1):
+                if i == len(steps):
+                     print(f"🎯 OBJETIF : {title}")
+                else:
+                     print(f" {i}. {title}")
+                     print(f"    ⬇️")
+        else:
+            print("No prerequisites found or target is a standalone course.")
+            
+        print("="*40)
+        em.close()
+        return
+
+    print("Usage: python main.py [drop|load|roadmap <slug>]")
+    em.close()
 
 if __name__ == "__main__":
-    populate_metro()
+    main()
